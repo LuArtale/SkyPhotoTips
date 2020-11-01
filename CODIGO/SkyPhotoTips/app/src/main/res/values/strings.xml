@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Sky Photo Tips</string>
+    <string name="retrofit_service">http://so-unlam.net.ar/api/</string>
+</resources>
