@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">Sky Photo Tips</string>
     <string name="retrofit_service">http://so-unlam.net.ar/api/</string>
+    <string name="enviroment">PROD</string> <!-- PROD / TEST -->
+    <string name="saved_time_weather">saved_time_weather</string>
+    <string name="saved_last_weather">saved_last_weather</string>
+    <string name="openweather_service">https://api.openweathermap.org/data/2.5/</string>
+    <string name="openweather_lat">-34.659774</string>
+    <string name="openweather_lon">-58.670787</string>
+    <string name="openweather_exclude">current,minutely,hourly,alerts</string>
+    <string name="openweather_units">metric</string>
+    <string name="openweather_appid">b30a54d63d819402d8d43fbcddd0642e</string>
 </resources>

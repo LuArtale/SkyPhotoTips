@@ -1,25 +1,24 @@
 package com.ea2soa.skyphototips;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import java.text.DecimalFormat;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+
+import com.ea2soa.skyphototips.dto.TokenManager;
 
 
 public class SensorsCheckActivity extends Activity implements SensorEventListener {
@@ -33,6 +32,9 @@ public class SensorsCheckActivity extends Activity implements SensorEventListene
     private Button buttonContinue;
 
     DecimalFormat dosdecimales = new DecimalFormat("##.##");
+
+    private SharedPreferences sharedPref;
+    private TokenManager tokenManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,17 +50,32 @@ public class SensorsCheckActivity extends Activity implements SensorEventListene
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        tokenManager = new TokenManager(sharedPref);
+
+        Intent intent=getIntent();
+        Bundle extras=intent.getExtras();
+        if(extras != null && extras.get("from").equals("login")){
+            showLastSensorsData();
+        }
+
         buttonContinue.setOnClickListener(new OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                Log.i("LOG_MAIN","Continue to Main");
+                if(inputTextAcelerometro.getText() != null && inputTextMagnetico.getText() != null && !extras.get("from").equals("main")) {
+                    Log.i("LOG_SENSORS_CHECK","Registrando evento sensores");
+                    tokenManager.executeRegisterEvent(getString(R.string.enviroment), "sensors_activity", "Los sensores ACELEROMETRO y MAGNETCO tienen actividad");
+                }
+
+                Log.i("LOG_SENSORS_CHECK","Continue to Main");
 
                 Intent continueIntent;
                 continueIntent=new Intent(SensorsCheckActivity.this, MainActivity.class);
 
                 startActivity(continueIntent);
+                finish();
             }
         });
     }
@@ -93,7 +110,7 @@ public class SensorsCheckActivity extends Activity implements SensorEventListene
 
         synchronized (this)
         {
-            Log.d("sensor", event.sensor.getName());
+            //Log.d("sensor", event.sensor.getName());
 
             switch(event.sensor.getType())
             {
@@ -150,6 +167,14 @@ public class SensorsCheckActivity extends Activity implements SensorEventListene
     protected void onPause()
     {
         Parar_Sensores();
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("last_data_acelerometer", inputTextAcelerometro.getText().toString());
+        editor.putString("last_data_giroscope", inputTextGiroscopo.getText().toString());
+        editor.putString("last_data_magnetic", inputTextMagnetico.getText().toString());
+        editor.putString("last_data_light", inputTextLuminosidad.getText().toString());
+        editor.apply();
+
         super.onPause();
     }
 
@@ -167,6 +192,21 @@ public class SensorsCheckActivity extends Activity implements SensorEventListene
         Ini_Sensores();
     }
 
+    public void showLastSensorsData() {
+
+        String sensorsData = "Acelerometro: \n" + sharedPref.getString("last_data_acelerometer", "Sin Datos");
+        sensorsData += "\nGiroscopo: \n" + sharedPref.getString("last_data_giroscope", "Sin Datos");
+        sensorsData += "\nMagnetico: \n" + sharedPref.getString("last_data_magnetic", "Sin Datos");
+        sensorsData += "\nLuminosidad: \n" + sharedPref.getString("last_data_light", "Sin Datos");
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Datos previos de los sensores");
+        builder.setMessage(sensorsData);
+        builder.setPositiveButton("Aceptar", null);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 
 
 }
